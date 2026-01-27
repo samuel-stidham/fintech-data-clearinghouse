@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+env/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Security / Keys
+deployer_key
+deployer_key.pub
+sftp_key
+sftp_key.pub
+*.pem
+
+# local sftp data for testing
+build/.docker
