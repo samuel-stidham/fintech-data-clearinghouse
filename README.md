@@ -123,20 +123,22 @@ To validate the ingestion pipeline, I ran three test scenarios: a custom dataset
 
 ### 1. Custom Dataset
 
-This dataset was created to test mixed Buy/Sell orders, different tickers, and various quantity thresholds to ensure the 100-share limit triggered correctly.
+This dataset was created to test mixed Buy/Sell orders, different tickers, and various trade values to ensure the **20% basket concentration rule** triggered correctly.
 
-Input (test_data.csv):
+Input (`test_data.csv`):
 
 ```csv
 TradeDate,AccountID,Ticker,Quantity,Price,TradeType,SettlementDate
-2025-01-15,ACC001,AAPL,150,185.50,BUY,2025-01-17
+2025-01-15,ACC001,AAPL,100,185.50,BUY,2025-01-17
 2025-01-15,ACC001,MSFT,50,420.25,BUY,2025-01-17
 2025-01-15,ACC002,GOOGL,75,142.80,BUY,2025-01-17
-2025-01-15,ACC002,TSLA,200,210.00,SELL,2025-01-17
+2025-01-15,ACC002,AAPL,200,185.50,BUY,2025-01-17
+2025-01-15,ACC003,TSLA,150,238.45,SELL,2025-01-17
 2025-01-15,ACC003,NVDA,80,505.30,BUY,2025-01-17
-2025-01-15,ACC003,AMZN,500,155.00,BUY,2025-01-17
-2025-01-15,ACC004,META,25,360.00,SELL,2025-01-17
-2025-01-15,ACC004,NFLX,120,490.00,BUY,2025-01-17
+2025-01-15,ACC001,GOOGL,100,142.80,BUY,2025-01-17
+2025-01-15,ACC004,AAPL,500,185.50,BUY,2025-01-17
+2025-01-15,ACC004,MSFT,300,420.25,BUY,2025-01-17
+2025-01-15,ACC002,NVDA,120,505.30,BUY,2025-01-17
 ```
 
 System Output:
@@ -144,44 +146,84 @@ System Output:
 ```text
 web-1   | [SFTP] Processing test_data.csv...
 web-1   | [SFTP] Detected Format 1 (CSV) for test_data.csv
-web-1   |    [!] ALERT: AAPL - High Volume (>100)
-web-1   |    [!] ALERT: TSLA - High Volume (>100)
-web-1   |    [!] ALERT: AMZN - High Volume (>100)
-web-1   |    [!] ALERT: NFLX - High Volume (>100)
-web-1   | [SFTP] Success: Ingested 8 trades from test_data.csv
-web-1   | [SFTP] Archived test_data.csv to /upload/processed/test_data.csv
+web-1   |    [!] ALERT: ACC001 / AAPL is 34.5% of basket.
+web-1   |    [!] ALERT: ACC001 / MSFT is 39.0% of basket.
+web-1   |    [!] ALERT: ACC002 / AAPL is 34.2% of basket.
+web-1   |    [!] ALERT: ACC003 / TSLA is 46.9% of basket.
+web-1   |    [!] ALERT: ACC003 / NVDA is 53.1% of basket.
+web-1   |    [!] ALERT: ACC001 / GOOGL is 26.5% of basket.
+web-1   |    [!] ALERT: ACC004 / AAPL is 42.4% of basket.
+web-1   |    [!] ALERT: ACC004 / MSFT is 57.6% of basket.
+web-1   |    [!] ALERT: ACC002 / NVDA is 55.9% of basket.
+web-1   | [SFTP] Success: Ingested 10 trades from test_data.csv
 ```
 
 ### 2. Standard Formats (Requirements Data)
 
 The system successfully auto-detected and processed both the Comma-Separated (Format 1) and Pipe-Separated (Format 2) files provided in the prompt.
 
-Format 1 Output (test_file1.csv):
+Format 1 Output (`test_file1.csv`):
 
 ```text
 web-1   | [SFTP] Processing test_file1.csv...
 web-1   | [SFTP] Detected Format 1 (CSV) for test_file1.csv
-web-1   |    [!] ALERT: AAPL - High Volume (>100)
-web-1   |    [!] ALERT: TSLA - High Volume (>100)
-web-1   |    [!] ALERT: AAPL - High Volume (>100)
-web-1   |    [!] ALERT: MSFT - High Volume (>100)
-web-1   |    [!] ALERT: NVDA - High Volume (>100)
+web-1   |    [!] ALERT: ACC001 / AAPL is 34.5% of basket.
+web-1   |    [!] ALERT: ACC001 / MSFT is 39.0% of basket.
+web-1   |    [!] ALERT: ACC002 / AAPL is 34.2% of basket.
+web-1   |    [!] ALERT: ACC003 / TSLA is 46.9% of basket.
+web-1   |    [!] ALERT: ACC003 / NVDA is 53.1% of basket.
+web-1   |    [!] ALERT: ACC001 / GOOGL is 26.5% of basket.
+web-1   |    [!] ALERT: ACC004 / AAPL is 42.4% of basket.
+web-1   |    [!] ALERT: ACC004 / MSFT is 57.6% of basket.
+web-1   |    [!] ALERT: ACC002 / NVDA is 55.9% of basket.
 web-1   | [SFTP] Success: Ingested 10 trades from test_file1.csv
 web-1   | [SFTP] Archived test_file1.csv to /upload/processed/test_file1.csv
 ```
 
-Format 2 Output (test_file2.csv):
+Format 2 Output (`test_file2.csv`):
 
 ```text
 web-1   | [SFTP] Processing test_file2.csv...
 web-1   | [SFTP] Detected Format 2 (Pipe) for test_file2.csv
-web-1   |    [!] ALERT: AAPL - High Volume (>100)
-web-1   |    [!] ALERT: NVDA - High Volume (>100)
-web-1   |    [!] ALERT: TSLA - High Volume (>100)
-web-1   |    [!] ALERT: AAPL - High Volume (>100)
-web-1   |    [!] ALERT: MSFT - High Volume (>100)
+web-1   |    [!] ALERT: ACC001 / AAPL is 34.5% of basket.
+web-1   |    [!] ALERT: ACC001 / MSFT is 39.0% of basket.
+web-1   |    [!] ALERT: ACC001 / GOOGL is 26.5% of basket.
+web-1   |    [!] ALERT: ACC002 / AAPL is 34.2% of basket.
+web-1   |    [!] ALERT: ACC002 / NVDA is 55.9% of basket.
+web-1   |    [!] ALERT: ACC003 / TSLA is 46.9% of basket.
+web-1   |    [!] ALERT: ACC003 / NVDA is 53.1% of basket.
+web-1   |    [!] ALERT: ACC004 / AAPL is 42.4% of basket.
+web-1   |    [!] ALERT: ACC004 / MSFT is 57.6% of basket.
 web-1   | [SFTP] Success: Ingested 10 trades from test_file2.csv
 web-1   | [SFTP] Archived test_file2.csv to /upload/processed/test_file2.csv
+```
+
+## API Endpoints Demo
+
+Below are the actual responses from the service after ingesting the sample data for **2025-01-15**.
+
+### 1. Daily Blotter
+**Endpoint:** `GET /blotter?date=2025-01-15`
+Returns a simplified view of all raw trades for the specified date.
+
+```json
+[{"account":"ACC001","id":1,"price":185.5,"quantity":100,"ticker":"AAPL","total_value":18550.0},{"account":"ACC001","id":2,"price":420.25,"quantity":50,"ticker":"MSFT","total_value":21012.5},{"account":"ACC002","id":3,"price":142.8,"quantity":75,"ticker":"GOOGL","total_value":10710.0},{"account":"ACC002","id":4,"price":185.5,"quantity":200,"ticker":"AAPL","total_value":37100.0},{"account":"ACC003","id":5,"price":238.45,"quantity":150,"ticker":"TSLA","total_value":35767.5},{"account":"ACC003","id":6,"price":505.3,"quantity":80,"ticker":"NVDA","total_value":40424.0},{"account":"ACC001","id":7,"price":142.8,"quantity":100,"ticker":"GOOGL","total_value":14280.000000000002},{"account":"ACC004","id":8,"price":185.5,"quantity":500,"ticker":"AAPL","total_value":92750.0},{"account":"ACC004","id":9,"price":420.25,"quantity":300,"ticker":"MSFT","total_value":126075.0},{"account":"ACC002","id":10,"price":505.3,"quantity":120,"ticker":"NVDA","total_value":60636.0}]
+```
+
+### 2. Account Positions
+**Endpoint:** `GET /positions?date=2025-01-15`
+Aggregates trades to show the percentage allocation of each asset per account.
+
+```json
+{"ACC001":{"AAPL":"34.5%","GOOGL":"26.5%","MSFT":"39.0%"},"ACC002":{"AAPL":"34.2%","GOOGL":"9.9%","NVDA":"55.9%"},"ACC003":{"NVDA":"53.1%","TSLA":"46.9%"},"ACC004":{"AAPL":"42.4%","MSFT":"57.6%"}}
+```
+
+### 3. Compliance Alarms
+**Endpoint:** `GET /alarms?date=2025-01-15`
+Identifies any account where a single ticker constitutes >20% of the daily trading volume.
+
+```json
+[{"account":"ACC001","description":"Ticker AAPL represents 34.5% of Account ACC001's batch order.","rule":"Basket Concentration (>20%)","ticker":"AAPL","triggered":true},{"account":"ACC001","description":"Ticker MSFT represents 39.0% of Account ACC001's batch order.","rule":"Basket Concentration (>20%)","ticker":"MSFT","triggered":true},{"account":"ACC002","description":"Ticker AAPL represents 34.2% of Account ACC002's batch order.","rule":"Basket Concentration (>20%)","ticker":"AAPL","triggered":true},{"account":"ACC003","description":"Ticker TSLA represents 46.9% of Account ACC003's batch order.","rule":"Basket Concentration (>20%)","ticker":"TSLA","triggered":true},{"account":"ACC003","description":"Ticker NVDA represents 53.1% of Account ACC003's batch order.","rule":"Basket Concentration (>20%)","ticker":"NVDA","triggered":true},{"account":"ACC001","description":"Ticker GOOGL represents 26.5% of Account ACC001's batch order.","rule":"Basket Concentration (>20%)","ticker":"GOOGL","triggered":true},{"account":"ACC004","description":"Ticker AAPL represents 42.4% of Account ACC004's batch order.","rule":"Basket Concentration (>20%)","ticker":"AAPL","triggered":true},{"account":"ACC004","description":"Ticker MSFT represents 57.6% of Account ACC004's batch order.","rule":"Basket Concentration (>20%)","ticker":"MSFT","triggered":true},{"account":"ACC002","description":"Ticker NVDA represents 55.9% of Account ACC002's batch order.","rule":"Basket Concentration (>20%)","ticker":"NVDA","triggered":true}]
 ```
 
 ## Full Disclosure

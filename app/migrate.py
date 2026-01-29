@@ -10,7 +10,6 @@ def wait_for_db(app):
         retries = 0
         while retries < 30:
             try:
-                # Try to run a simple query
                 db.session.execute(text("SELECT 1"))
                 print("[Migration] Database is ready!")
                 return True
@@ -31,7 +30,6 @@ def run_migrations():
         with app.app_context():
             print("[Migration] Creating tables...")
             try:
-                # db.create_all() looks at all imported models and generates CREATE TABLE statements
                 db.create_all()
                 print("[Migration] Tables created successfully.")
             except Exception as e:
