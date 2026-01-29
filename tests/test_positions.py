@@ -1,3 +1,4 @@
+from datetime import date
 from app import db
 from app.models import Trade
 
@@ -23,14 +24,14 @@ def test_positions_mixed_allocation(client, app):
 
     with app.app_context():
         t1 = Trade(
-            trade_date="2025-02-01",
+            trade_date=date(2025, 2, 1),
             account="ACC_MIX",
             ticker="A",
             quantity=10,
             price=20.00,
         )
         t2 = Trade(
-            trade_date="2025-02-01",
+            trade_date=date(2025, 2, 1),
             account="ACC_MIX",
             ticker="B",
             quantity=10,

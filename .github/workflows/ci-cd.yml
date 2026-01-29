@@ -11,12 +11,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6.2.0
         with:
-          python-version: '3.11'
+          python-version: '3.14'
 
       - name: Install Dependencies
         run: |
@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Deploy to EC2
         env:
@@ -44,7 +44,6 @@ jobs:
           mkdir -p ~/.ssh
           echo "$PRIVATE_KEY" > ~/.ssh/deployer_key
           chmod 600 ~/.ssh/deployer_key
-          
           ssh-keyscan -H $HOST >> ~/.ssh/known_hosts
 
           rsync -avz --delete \
@@ -58,8 +57,37 @@ jobs:
 
           ssh -i ~/.ssh/deployer_key $USER@$HOST << EOF
             cd /home/$USER/app
-            
             sudo docker compose up -d --build --remove-orphans
-            
             sudo docker image prune -f
           EOF
+
+      - name: Verify Deployment (Smoke Test)
+        env:
+          HOST: ${{ secrets.EC2_HOST }}
+        run: |
+          echo "Waiting for service to stabilize..."
+          URL="http://$HOST:5000/health"
+          MAX_ATTEMPTS=5
+          ATTEMPT=1
+          
+          sleep 10
+
+          while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+            echo "Attempt $ATTEMPT: Pinging $URL..."
+            
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 5 $URL || echo "000")
+
+            if [ "$HTTP_CODE" == "200" ]; then
+              echo "✅ Smoke Test Passed! Service is healthy."
+              exit 0
+            fi
+
+            WAIT_TIME=$(( ATTEMPT * 5 ))
+            echo "⚠️  Check failed (Status: $HTTP_CODE). Retrying in $WAIT_TIME seconds..."
+            
+            sleep $WAIT_TIME
+            ATTEMPT=$(( ATTEMPT + 1 ))
+          done
+
+          echo "💀 Smoke Test Failed: Service did not respond with 200 OK after $MAX_ATTEMPTS attempts."
+          exit 1

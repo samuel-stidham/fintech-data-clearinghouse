@@ -1,3 +1,4 @@
+from datetime import date
 from app import db
 from app.models import Trade, ComplianceAlert
 
@@ -6,7 +7,7 @@ def test_alarms_none(client, app):
     """Test a date with trades but NO alerts."""
     with app.app_context():
         t1 = Trade(
-            trade_date="2025-03-01",
+            trade_date=date(2025, 3, 1),
             account="SAFE_ACC",
             ticker="AAPL",
             quantity=10,
@@ -24,7 +25,7 @@ def test_alarms_found(client, app):
     """Test retrieving alerts for a specific date."""
     with app.app_context():
         t1 = Trade(
-            trade_date="2025-03-02",
+            trade_date=date(2025, 3, 2),
             account="RISKY_ACC",
             ticker="MEME",
             quantity=1000,
