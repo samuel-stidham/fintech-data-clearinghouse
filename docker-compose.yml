@@ -42,6 +42,7 @@ services:
       SFTP_USERS: vest_user:pass:1001
     volumes:
       - ./build/.docker/sftp_data:/home/vest_user/upload
+      - ./client_key.pub:/home/vest_user/.ssh/keys/id_rsa.pub:ro
 
 volumes:
   postgres_data:

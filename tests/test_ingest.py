@@ -4,8 +4,18 @@ from app.ingest import SftpIngestionService
 
 
 class MockApp:
+    """
+    Mock Flask App that functions as a context manager.
+    Essential because the service uses 'with self.app.app_context():'
+    """
     def app_context(self):
         return self
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
 
 
 def test_normalization_csv():
@@ -37,7 +47,6 @@ def test_normalization_pipe():
     assert len(df) == 1
     assert df.iloc[0]["ticker"] == "GOOGL"
     assert df.iloc[0]["quantity"] == 10
-
     assert df.iloc[0]["price"] == 200.00
     assert str(df.iloc[0]["date"]) == "2025-01-15"
 
@@ -50,4 +59,4 @@ def test_normalization_invalid():
 
     df = service.normalize_data(garbage_content, "garbage.txt")
 
-    pass
+    assert df is None

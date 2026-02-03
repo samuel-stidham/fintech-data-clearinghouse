@@ -24,6 +24,7 @@ deployer_key.pub
 sftp_key
 sftp_key.pub
 *.pem
+client_key.pub
 
 # local sftp data for testing
 build/.docker

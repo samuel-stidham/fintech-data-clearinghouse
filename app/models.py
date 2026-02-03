@@ -1,6 +1,14 @@
 from datetime import date, datetime
 from typing import List, Optional
-from sqlalchemy import String, Integer, Numeric, Date, DateTime, ForeignKey
+from sqlalchemy import (
+    String,
+    Integer,
+    Numeric,
+    Date,
+    DateTime,
+    ForeignKey,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 from . import db
@@ -16,6 +24,12 @@ class Trade(db.Model):
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
     price: Mapped[float] = mapped_column(Numeric(12, 4), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+    __table_args__ = (
+        UniqueConstraint(
+            "trade_date", "account", "ticker", name="_account_ticker_date_uc"
+        ),
+    )
 
     alerts: Mapped[List["ComplianceAlert"]] = relationship(
         back_populates="trade", cascade="all, delete-orphan"
